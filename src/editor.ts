@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/camelcase */
 import { LitElement, html, TemplateResult, css, CSSResultGroup } from 'lit';
-import { HomeAssistant, fireEvent, LovelaceCardEditor, ActionConfig } from 'custom-card-helpers';
+import { HomeAssistant, fireEvent, LovelaceCardEditor } from 'custom-card-helpers';
 import { customElement, property, state } from 'lit/decorators';
-import { BoilerplateCardConfig, EditorTarget } from './types';
+import { BoilerplateCardConfig } from './types';
 import { GarageCardEditorSchema } from './schema';
-import { localize } from "./localize/localize";
-import { garageOpen, garageClosed } from "./const";
 import { assert, object, optional, string, assign, any, boolean } from "superstruct";
 
 // import './icon-select-door'

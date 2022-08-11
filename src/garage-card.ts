@@ -62,6 +62,7 @@ export class BoilerplateCard extends LitElement {
       "show_name": true,
       "show_state": true,
       "name": "Raceland",
+      sensor: "",
       "show_preview": true,
       "icon": garageClosed + ":" + garageOpen,
     };
@@ -160,7 +161,6 @@ export class BoilerplateCard extends LitElement {
 }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
-    console.log("YOO", changedProps)
     if (!this.config) {
       return false;
     }
