@@ -7,18 +7,31 @@ import { BoilerplateCardConfig, EditorTarget } from './types';
 import { GarageCardEditorSchema } from './schema';
 import { localize } from "./localize/localize";
 import { garageOpen, garageClosed } from "./const";
+import { assert, object, optional, string, assign, any, boolean } from "superstruct";
 
 // import './icon-select-door'
 
 // import { assert } from 'superstruct';
 
-const cardConfigStruct = {
-  required: {
-    name: 'Entidade (Opcional)',
-    show: true,
-  },
-};
+export const baseLovelaceCardConfig = object({
+  type: string(),
+  view_layout: any(),
+});
 
+const cardConfigStruct = assign(
+  baseLovelaceCardConfig,
+  object({
+    name: optional(string()),
+    entity: optional(string()),
+    sensor: optional(string()),
+    show_name: optional(boolean()),
+    show_state: optional(boolean()),
+    show_preview: optional(boolean()),
+    icon: optional(string()),
+    // hold_action: optional(actionConfigStruct),
+    // double_tap_action: optional(actionConfigStruct),
+  })
+);
 
 @customElement('garage-card-editor')
 export class BoilerplateCardEditor extends LitElement implements LovelaceCardEditor {
@@ -29,6 +42,7 @@ export class BoilerplateCardEditor extends LitElement implements LovelaceCardEdi
   private _initialized = false;
 
   public setConfig(config: BoilerplateCardConfig): void {
+    assert(config, cardConfigStruct);
     this._config = config;
     this.loadCardHelpers();
   }
@@ -54,6 +68,10 @@ export class BoilerplateCardEditor extends LitElement implements LovelaceCardEdi
 
   get _entity(): string {
     return this._config?.entity || '';
+  }
+
+  get _sensor(): string {
+    return this._config?.sensor || '';
   }
 
   get _show_warning(): boolean {
