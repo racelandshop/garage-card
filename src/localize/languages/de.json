@@ -1,0 +1,23 @@
+{
+    "common": {
+      "card": "Garage",
+      "version": "Ausführung",
+      "invalid_configuration": "Ungültige Konfiguration",
+      "show_warning": "Warnung anzeigen",
+      "show_error": "Fehler anzeigen"
+    },
+    "states":{
+        "on": "Eingeschaltet",
+        "off": "Aus"
+    },
+    "editor": {
+      "config": {
+        "entity": "Einheit",
+        "sensor": "Sensor",
+        "name": "Name",
+        "theme": "Thema",
+        "show_name": "Name anzeigen?",
+        "show_state": "Zustand anzeigen?"
+      }
+    }
+  }

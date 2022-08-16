@@ -28,7 +28,7 @@ console.info(
 (window as any).customCards = (window as any).customCards || [];
 (window as any).customCards.push({
   type: 'garage-card',
-  name: 'Garage',
+  name: localize('common.card'),
   preview: true
 });
 @customElement('garage-card')
@@ -61,8 +61,6 @@ export class BoilerplateCard extends LitElement {
       entity: foundEntities[0] || "",
       "show_name": true,
       "show_state": true,
-      "name": "Raceland",
-      sensor: "",
       "show_preview": true,
       "icon": garageClosed + ":" + garageOpen,
     };
@@ -181,6 +179,10 @@ export class BoilerplateCard extends LitElement {
 
     this._stateSensor = stateObj;
 
+    const name = this.config.show_name
+
+    ? this.config.name || (stateObj2 ? this.computeStateName(stateObj2) : "")
+    : "";
   return html`
     <ha-card
       class="big-card"
@@ -236,7 +238,7 @@ export class BoilerplateCard extends LitElement {
     ${this.config.show_name
       ? html`
         <div tabindex = "-1" class="rect-card">
-        ${this.config.name}
+        ${name}
           </div>
           <div></div>
         `

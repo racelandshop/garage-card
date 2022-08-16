@@ -1,0 +1,23 @@
+{
+    "common": {
+      "card": "Garage",
+      "version": "Version",
+      "invalid_configuration": "Configuration invalide",
+      "show_warning": "Afficher l'avertissement",
+      "show_error": "Afficher l'erreur"
+    },
+    "states":{
+        "on": "Allumé",
+        "off": "À l'arrêt"
+    },
+    "editor": {
+      "config": {
+        "entity": "Entité",
+        "sensor": "Capteur",
+        "name": "Nom",
+        "theme": "Thème",
+        "show_name": "Afficher le nom?",
+        "show_state": "Afficher l'état?"
+      }
+    }
+  }
