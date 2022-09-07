@@ -12,10 +12,9 @@ import { HomeAssistant, hasConfigOrEntityChanged, hasAction, ActionHandlerEvent,
 import './editor';
 import type { BoilerplateCardConfig } from './types';
 import { actionHandler } from './action-handler-directive';
-import { CARD_VERSION, garageOpen, garageClosed, UNAVAILABLE_STATES, UNAVAILABLE } from './const';
+import { CARD_VERSION, garageOpen, garageClosed, UNAVAILABLE_STATES, UNAVAILABLE, sidegatePost1, sidegateGate, sidegatePost2 } from './const';
 import { localize } from './localize/localize';
-import { debounce } from "./common/debounce";
-import ResizeObserver from "./common/resizeObserver";
+// import { debounce } from "./common/debounce";
 import { hasConfigOrSensorChanged } from "./utils/hasSensorChanged";
 
 
@@ -38,7 +37,6 @@ export class BoilerplateCard extends LitElement {
   }
 
   @state() _stateSensor?: any;
-
 
   @queryAsync('mwc-ripple') private _ripple!: Promise<Ripple | null>;
 
@@ -66,60 +64,75 @@ export class BoilerplateCard extends LitElement {
     };
   }
 
-  protected firstUpdated(): void {
-    this._attachResizeObserver();
-  }
-  private _resizeObserver?: ResizeObserver;
+  @property({ type: String }) public layout = "big";
 
-  private async _attachResizeObserver(): Promise<void> {
-    if (!this._resizeObserver) {
-      this._resizeObserver = new ResizeObserver(
-        debounce(
-          (entries: any) => {
-          const rootGrid = this.closest("div");
-          const entry = entries[0];
-          if (
-            rootGrid &&
-            entry.contentRect.width <= rootGrid.clientWidth / 2 &&
-            entry.contentRect.width > rootGrid.clientWidth / 3
-          ) {
-            const shadow = this.shadowRoot?.querySelector("ha-card");
-            shadow?.classList.remove("big-card");
-            shadow?.classList.add("medium-card");
-            const statusicon = this.shadowRoot?.querySelector(".ha-status-icon");
-            statusicon?.classList.remove("ha-status-icon");
-            statusicon?.classList.add("ha-status-icon-small");
-            const statusrect = this.shadowRoot?.querySelector(".rect-card");
-            statusrect?.classList.remove("rect-card");
-            statusrect?.classList.add("rect-card-medium");
-            const garage = this.shadowRoot?.querySelector(".svgicon-garage");
-            garage?.classList.remove("svgicon-garage");
-            garage?.classList.add("svgicon-garage-small");
-          }
-          else if (
-            rootGrid &&
-            entry.contentRect.width <= rootGrid.clientWidth / 3 &&
-            entry.contentRect.width !== 0
-          ) {
-            const shadow = this.shadowRoot?.querySelector("ha-card");
-            shadow?.classList.remove("big-card");
-            shadow?.classList.add("small-card");
-            const statusicon = this.shadowRoot?.querySelector(".ha-status-icon");
-            statusicon?.classList.remove("ha-status-icon");
-            statusicon?.classList.add("ha-status-icon-small");
-            const statusrect = this.shadowRoot?.querySelector(".rect-card");
-            statusrect?.classList.remove("rect-card");
-            statusrect?.classList.add("rect-card-small");
-            const garage = this.shadowRoot?.querySelector(".svgicon-garage");
-            garage?.classList.remove("svgicon-garage");
-            garage?.classList.add("svgicon-garage-small");
-          }
-        }, 250, true));
-      }
+  // protected firstUpdated(): void {
+  //   this._attachResizeObserver();
 
-    this._resizeObserver.observe(this);
+  // }
 
-    }
+//   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+//   public connectedCallback() {
+//     // @ts-ignore
+//     // this._saveInstanceProperties();
+//     super.connectedCallback();
+// }
+
+  // private _resizeObserver?: ResizeObserver;
+
+
+  // private async _attachResizeObserver(): Promise<void> {
+  //   if (!this._resizeObserver) {
+  //     this._resizeObserver = new ResizeObserver(
+  //       debounce(
+  //         (entries: any) => {
+  //         const rootGrid = this.closest("div");
+  //         const entry = entries[0];
+  //         if (
+  //           rootGrid &&
+  //           entry.contentRect.width <= rootGrid.clientWidth / 2 &&
+  //           entry.contentRect.width > rootGrid.clientWidth / 3
+  //         ) {
+  //           // const shadow = this.shadowRoot?.querySelector("ha-card");
+  //           // shadow?.classList.remove("big-card");
+  //           // shadow?.classList.add("medium-card");
+  //           // const statusicon = this.shadowRoot?.querySelector(".ha-status-icon");
+  //           // statusicon?.classList.remove("ha-status-icon");
+  //           // statusicon?.classList.add("ha-status-icon-small");
+  //           // const statusrect = this.shadowRoot?.querySelector(".rect-card");
+  //           // statusrect?.classList.remove("rect-card");
+  //           // statusrect?.classList.add("rect-card-medium");
+  //           // const garage = this.shadowRoot?.querySelector(".svgicon-garage");
+  //           // garage?.classList.remove("svgicon-garage");
+  //           // garage?.classList.add("svgicon-garage-small");
+  //           this.layout = "medium";
+  //         }
+  //         else if (
+  //           rootGrid &&
+  //           entry.contentRect.width <= rootGrid.clientWidth / 3 &&
+  //           entry.contentRect.width !== 0
+  //         ) {
+  //           // const shadow = this.shadowRoot?.querySelector("ha-card");
+  //           // shadow?.classList.remove("big-card");
+  //           // shadow?.classList.add("small-card");
+  //           // const statusicon = this.shadowRoot?.querySelector(".ha-status-icon");
+  //           // statusicon?.classList.remove("ha-status-icon");
+  //           // statusicon?.classList.add("ha-status-icon-small");
+  //           // const statusrect = this.shadowRoot?.querySelector(".rect-card");
+  //           // statusrect?.classList.remove("rect-card");
+  //           // statusrect?.classList.add("rect-card-small");
+  //           // const garage = this.shadowRoot?.querySelector(".svgicon-garage");
+  //           // garage?.classList.remove("svgicon-garage");
+  //           // garage?.classList.add("svgicon-garage-small");
+  //           this.layout = "small";
+  //         }
+  //       }, 250, true));
+  //     }
+
+  //   this._resizeObserver.observe(this);
+
+  // }
+
   @property({ attribute: false }) public hass!: HomeAssistant;
 
   @state() private config!: BoilerplateCardConfig;
@@ -179,13 +192,22 @@ export class BoilerplateCard extends LitElement {
 
     this._stateSensor = stateObj;
 
+    const layout = this.layout;
+    console.log("layout", layout);
+
     const name = this.config.show_name
+
 
     ? this.config.name || (stateObj2 ? this.computeStateName(stateObj2) : "")
     : "";
   return html`
     <ha-card
-      class="big-card"
+      class=${classMap({
+        "big-card": this.layout === "big",
+        "medium-card": this.layout === "medium",
+        "small-card": this.layout === "small",
+        "unavailable": UNAVAILABLE_STATES.includes(stateObj2!.state)
+              })}
       @action=${this._handleAction}
       @focus=${this.handleRippleFocus}
       @blur=${this.handleRippleBlur}
@@ -207,13 +229,17 @@ export class BoilerplateCard extends LitElement {
         tabindex=${ifDefined(
           hasAction(this.config.tap_action) ? "0" : undefined
         )}
-      .label=${`garage: ${this.config.entity || 'No Entity Defined'}`}
     >
-      ${this.config.show_icon && this.config.icon
+      ${this.config.show_icon && this.config.icon === garageClosed + ":" + garageOpen
     ? html`
-          <div class="ha-status-icon">
-            <svg class=
-              "svgicon-garage"
+          <div class=${classMap({
+              "ha-status-icon": this.layout === "big",
+              "ha-status-icon-small": this.layout === "medium" ||  this.layout === "small",
+                    })}>
+            <svg class=${classMap({
+              "svgicon-garage": this.layout === "big",
+              "svgicon-garage-small": this.layout === "medium" ||  this.layout === "small",
+                    })}
               viewBox="0 0 50 50" height="100%" width="100%">
 
                   <path class=${classMap({
@@ -234,22 +260,53 @@ export class BoilerplateCard extends LitElement {
               </svg>
             </div>
           `
-        : ""}
+    : this.config.show_icon && this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2 ? html`
+        <div class=${classMap({
+              "ha-status-icon": this.layout === "big",
+              "ha-status-icon-small": this.layout === "medium" ||  this.layout === "small",
+                    })}>
+            <svg class=${classMap({
+              "svgicon-sidegate": this.layout === "big",
+              "svgicon-sidegate-small": this.layout === "medium" ||  this.layout === "small",
+                    })}
+              viewBox="0 0 50 50" height="100%" width="100%">
+                  <path class=${classMap({
+                    "state-on-sidegate":
+                      ifDefined(stateObj? this.computeActiveState(stateObj) : undefined) === "off" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
+                    "state-off-sidegate":
+                      ifDefined(stateObj ? this.computeActiveState(stateObj) : "on") === "on" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
+                    "state-unavailable": stateObj2?.state === UNAVAILABLE,
+                  })} d=${this.config.icon.split(":")[0]} />
+                  <path class=${classMap({
+                    "state-on-sidegate":
+                      ifDefined(stateObj? this.computeActiveState(stateObj) : undefined) === "off" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
+                    "state-off-sidegate":
+                      ifDefined(stateObj ? this.computeActiveState(stateObj) : "on") === "on" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
+                    "state-unavailable": stateObj2?.state === UNAVAILABLE,
+                  })} d=${this.config.icon.split(":")[2] ? this.config.icon.split(":")[2] : ""}/>
+                  <path class=${classMap({
+                    "state-on-sidegate-icon":
+                      ifDefined(stateObj? this.computeActiveState(stateObj) : undefined) === "off" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
+                    "state-off-sidegate-icon":
+                      ifDefined(stateObj ? this.computeActiveState(stateObj) : "on") === "on" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
+                    "state-unavailable": stateObj2?.state === UNAVAILABLE,
+                  })}
+                  d=${this.config.icon.split(":")[1]} />
+              </svg>
+            </div>
+        `: html``}
     ${this.config.show_name
       ? html`
-        <div tabindex = "-1" class="rect-card">
+        <div tabindex = "-1" class=${classMap({
+            "rect-card": this.layout === "big",
+            "rect-card-medium": this.layout === "medium",
+            "rect-card-small": this.layout === "small",
+                  })}>
         ${name}
           </div>
           <div></div>
         `
       : ""}
-
-    <!-- ${this.config.show_state
-    ? html`
-      <div tabindex="-1" class="state-div">
-      ${this.translate_state(stateObj)}
-      <div class="position"></div>
-     </div><div></div>`: ""} -->
      ${this._shouldRenderRipple ? html`<mwc-ripple></mwc-ripple>` : ""}
      ${UNAVAILABLE_STATES.includes(stateObj2!.state)
               ? html`
@@ -258,14 +315,14 @@ export class BoilerplateCard extends LitElement {
     `;
   }
 
-private computeActiveState = (stateObj: HassEntity): string => {
-  const domain = stateObj.entity_id.split(".")[0];
-  let state = stateObj.state;
-  if (domain === "climate") {
-    state = stateObj.attributes.hvac_action;
-  }
-  return state;
-};
+  private computeActiveState = (stateObj: HassEntity): string => {
+    const domain = stateObj.entity_id.split(".")[0];
+    let state = stateObj.state;
+    if (domain === "climate") {
+      state = stateObj.attributes.hvac_action;
+    }
+    return state;
+  };
 
   private _handleAction(ev: ActionHandlerEvent): void {
     if (this.hass && this.config && ev.detail.action) {
@@ -470,6 +527,33 @@ private computeActiveState = (stateObj: HassEntity): string => {
       .state-off-garage {
         fill: var(--paper-item-icon-color, #44739e);
         transition: 0.7s ease-out;
+      }
+      .svgicon-sidegate {
+        transform: scale(1.5);
+      }
+      .svgicon-sidegate-small {
+        margin-left: 30%;
+        margin-bottom: 17%;
+        margin-top: 5%;
+        transform: scale(1.4);
+      }
+      .state-on-sidegate-icon {
+        fill: var(--state-icon-active-color, #44739e);
+        transform: matrix(0.000001, 0, 0, 1, 6, 0);
+        transition: 1s ease-out;
+      }
+      .state-off-sidegate-icon {
+        fill: var(--paper-item-icon-color, #44739e);
+        transform: matrix(1, 0, 0, 1, 0, 0);
+        transition: 1s ease-out;
+      }
+      .state-on-sidegate {
+        fill: var(--state-icon-active-color, #44739e);
+        transition: 1s ease-out;
+      }
+      .state-off-sidegate {
+        fill: var(--paper-item-icon-color, #44739e);
+        transition: 1s ease-out;
       }
       .state-unavailable {
         fill: var(--state-unavailable-color) !important;

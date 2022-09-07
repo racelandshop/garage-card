@@ -17,7 +17,8 @@
         "name": "Nome",
         "theme": "Tema",
         "show_name": "Mostra nome?",
-        "show_state": "Mostra stato?"
+        "show_state": "Mostra stato?",
+        "picker": "Icona da visualizzare sulla scheda:"
       }
     }
   }

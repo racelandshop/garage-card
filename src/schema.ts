@@ -1,24 +1,33 @@
+import { garageClosed, garageOpen, sidegateGate, sidegatePost1, sidegatePost2 } from "./const";
+
 export const GarageCardEditorSchema = [
     {
         name: "entity",
-        selector: { entity: {domain: ["switch"]} }
+        selector: { entity: {domain: ["switch"], device_class: "garage"} }
     },
     {
         name: "sensor",
-        selector: { entity: {domain: ["binary_sensor"]} }
+        selector: { entity: {domain: ["binary_sensor"], device_class: "garage_door"} }
     },
     {
         name: "name",
         selector: { text: {} }
     },
-//     {
-//     //   name: "",
-//       type: "grid",
-//       // eslint-disable-next-line @typescript-eslint/camelcase
-//       column_min_width: "50px",
-//       // schema: [
-//       //   { name: "show_name", selector: { boolean: {} } },
-//       //   { name: "show_state", selector: { boolean: {} } },
-//       // ],
-//   },
+    // {
+    //     name: "icon",
+    //     selector: {
+    //         select: {
+    //           options: [
+    //             {
+    //               value: garageClosed + ":" + garageOpen,
+    //               label: "Garagem",
+    //             },
+    //             {
+    //               value: sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2,
+    //               label: "Portão",
+    //             },
+    //           ],
+    //         },
+    //       },
+    // }
 ]

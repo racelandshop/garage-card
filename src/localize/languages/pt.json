@@ -17,7 +17,8 @@
       "name": "Nome",
       "theme": "Tema",
       "show_name": "Mostrar Nome?",
-      "show_state": "Mostrar Estado?"
+      "show_state": "Mostrar Estado?",
+      "picker": "Ícone a ser exibido na carta:"
     }
   }
 }
