@@ -1,5 +1,3 @@
-import { garageClosed, garageOpen, sidegateGate, sidegatePost1, sidegatePost2 } from "./const";
-
 export const GarageCardEditorSchema = [
     {
         name: "entity",
@@ -13,21 +11,4 @@ export const GarageCardEditorSchema = [
         name: "name",
         selector: { text: {} }
     },
-    // {
-    //     name: "icon",
-    //     selector: {
-    //         select: {
-    //           options: [
-    //             {
-    //               value: garageClosed + ":" + garageOpen,
-    //               label: "Garagem",
-    //             },
-    //             {
-    //               value: sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2,
-    //               label: "Portão",
-    //             },
-    //           ],
-    //         },
-    //       },
-    // }
 ]

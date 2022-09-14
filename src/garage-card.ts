@@ -66,73 +66,6 @@ export class BoilerplateCard extends LitElement {
 
   @property({ type: String }) public layout = "big";
 
-  // protected firstUpdated(): void {
-  //   this._attachResizeObserver();
-
-  // }
-
-//   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-//   public connectedCallback() {
-//     // @ts-ignore
-//     // this._saveInstanceProperties();
-//     super.connectedCallback();
-// }
-
-  // private _resizeObserver?: ResizeObserver;
-
-
-  // private async _attachResizeObserver(): Promise<void> {
-  //   if (!this._resizeObserver) {
-  //     this._resizeObserver = new ResizeObserver(
-  //       debounce(
-  //         (entries: any) => {
-  //         const rootGrid = this.closest("div");
-  //         const entry = entries[0];
-  //         if (
-  //           rootGrid &&
-  //           entry.contentRect.width <= rootGrid.clientWidth / 2 &&
-  //           entry.contentRect.width > rootGrid.clientWidth / 3
-  //         ) {
-  //           // const shadow = this.shadowRoot?.querySelector("ha-card");
-  //           // shadow?.classList.remove("big-card");
-  //           // shadow?.classList.add("medium-card");
-  //           // const statusicon = this.shadowRoot?.querySelector(".ha-status-icon");
-  //           // statusicon?.classList.remove("ha-status-icon");
-  //           // statusicon?.classList.add("ha-status-icon-small");
-  //           // const statusrect = this.shadowRoot?.querySelector(".rect-card");
-  //           // statusrect?.classList.remove("rect-card");
-  //           // statusrect?.classList.add("rect-card-medium");
-  //           // const garage = this.shadowRoot?.querySelector(".svgicon-garage");
-  //           // garage?.classList.remove("svgicon-garage");
-  //           // garage?.classList.add("svgicon-garage-small");
-  //           this.layout = "medium";
-  //         }
-  //         else if (
-  //           rootGrid &&
-  //           entry.contentRect.width <= rootGrid.clientWidth / 3 &&
-  //           entry.contentRect.width !== 0
-  //         ) {
-  //           // const shadow = this.shadowRoot?.querySelector("ha-card");
-  //           // shadow?.classList.remove("big-card");
-  //           // shadow?.classList.add("small-card");
-  //           // const statusicon = this.shadowRoot?.querySelector(".ha-status-icon");
-  //           // statusicon?.classList.remove("ha-status-icon");
-  //           // statusicon?.classList.add("ha-status-icon-small");
-  //           // const statusrect = this.shadowRoot?.querySelector(".rect-card");
-  //           // statusrect?.classList.remove("rect-card");
-  //           // statusrect?.classList.add("rect-card-small");
-  //           // const garage = this.shadowRoot?.querySelector(".svgicon-garage");
-  //           // garage?.classList.remove("svgicon-garage");
-  //           // garage?.classList.add("svgicon-garage-small");
-  //           this.layout = "small";
-  //         }
-  //       }, 250, true));
-  //     }
-
-  //   this._resizeObserver.observe(this);
-
-  // }
-
   @property({ attribute: false }) public hass!: HomeAssistant;
 
   @state() private config!: BoilerplateCardConfig;
@@ -185,28 +118,26 @@ export class BoilerplateCard extends LitElement {
     if (this.config.show_error) {
       return this._showError(localize('common.show_error'));
     }
-    const stateObj2 = this.config.entity
+    const stateObj2: any = this.config.entity
       ? this.hass.states[this.config.entity]
       : undefined;
     const stateObj = this.hass.states[this.config.sensor];
 
     this._stateSensor = stateObj;
 
-    const layout = this.layout;
-    console.log("layout", layout);
-
     const name = this.config.show_name
 
 
     ? this.config.name || (stateObj2 ? this.computeStateName(stateObj2) : "")
-    : "";
+      : "";
+
   return html`
     <ha-card
       class=${classMap({
         "big-card": this.layout === "big",
         "medium-card": this.layout === "medium",
         "small-card": this.layout === "small",
-        "unavailable": UNAVAILABLE_STATES.includes(stateObj2!.state)
+        "unavailable": UNAVAILABLE_STATES.includes(stateObj2?.state) || UNAVAILABLE_STATES.includes(stateObj?.state)
               })}
       @action=${this._handleAction}
       @focus=${this.handleRippleFocus}
@@ -217,7 +148,7 @@ export class BoilerplateCard extends LitElement {
       @touchend=${this.handleRippleDeactivate}
       @touchcancel=${this.handleRippleDeactivate}
       @keydown=${this._handleKeyDown}
-      .disabled=${UNAVAILABLE_STATES.includes(stateObj2!.state)}
+      .disabled=${UNAVAILABLE_STATES.includes(stateObj2?.state) || UNAVAILABLE_STATES.includes(stateObj?.state)}
       .actionHandler=${actionHandler({
       hasHold: hasAction(this.config.hold_action),
       hasDoubleClick: hasAction(this.config.double_tap_action),
@@ -244,17 +175,17 @@ export class BoilerplateCard extends LitElement {
 
                   <path class=${classMap({
                     "state-on-garage":
-                      ifDefined(stateObj ? this.computeActiveState(stateObj) : undefined) === "off" && (this.config.icon === garageClosed + ":" + garageOpen),
+                    ifDefined(stateObj ? this.computeActiveState(stateObj) : "on") === "on" && (this.config.icon ===  garageClosed + ":" + garageOpen),
                     "state-off-garage":
-                      ifDefined(stateObj ? this.computeActiveState(stateObj) : "on") === "on" && (this.config.icon ===  garageClosed + ":" + garageOpen),
-                    "state-unavailable": stateObj2?.state === UNAVAILABLE,
+                    ifDefined(stateObj ? this.computeActiveState(stateObj) : "off") === "off" && (this.config.icon === garageClosed + ":" + garageOpen),
+                    "state-unavailable": stateObj2?.state === UNAVAILABLE || stateObj?.state === UNAVAILABLE,
                   })} d=${this.config.icon.split(":")[0]} />
                   <path class=${classMap({
                     "state-on-garage-icon":
-                    ifDefined(stateObj ? this.computeActiveState(stateObj) : undefined) === "off" && (this.config.icon === garageClosed + ":" + garageOpen),
-                    "state-off-garage-icon":
                     ifDefined(stateObj? this.computeActiveState(stateObj) : "on") === "on" && (this.config.icon ===  garageClosed + ":" + garageOpen),
-                    "state-unavailable": stateObj2?.state === UNAVAILABLE,
+                    "state-off-garage-icon":
+                    ifDefined(stateObj ? this.computeActiveState(stateObj) : "off") === "off" && (this.config.icon === garageClosed + ":" + garageOpen),
+                    "state-unavailable": stateObj2?.state === UNAVAILABLE || stateObj?.state === UNAVAILABLE,
                   })}
                   d=${this.config.icon.split(":")[1]} />
               </svg>
@@ -272,24 +203,24 @@ export class BoilerplateCard extends LitElement {
               viewBox="0 0 50 50" height="100%" width="100%">
                   <path class=${classMap({
                     "state-on-sidegate":
-                      ifDefined(stateObj? this.computeActiveState(stateObj) : undefined) === "off" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
+                    ifDefined(stateObj ? this.computeActiveState(stateObj) : "on") === "on" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
                     "state-off-sidegate":
-                      ifDefined(stateObj ? this.computeActiveState(stateObj) : "on") === "on" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
-                    "state-unavailable": stateObj2?.state === UNAVAILABLE,
+                    ifDefined(stateObj? this.computeActiveState(stateObj) : "off") === "off" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
+                    "state-unavailable": stateObj2?.state === UNAVAILABLE || stateObj?.state === UNAVAILABLE,
                   })} d=${this.config.icon.split(":")[0]} />
                   <path class=${classMap({
                     "state-on-sidegate":
-                      ifDefined(stateObj? this.computeActiveState(stateObj) : undefined) === "off" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
+                    ifDefined(stateObj ? this.computeActiveState(stateObj) : "on") === "on" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
                     "state-off-sidegate":
-                      ifDefined(stateObj ? this.computeActiveState(stateObj) : "on") === "on" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
-                    "state-unavailable": stateObj2?.state === UNAVAILABLE,
+                    ifDefined(stateObj? this.computeActiveState(stateObj) : "off") === "off" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
+                    "state-unavailable": stateObj2?.state === UNAVAILABLE || stateObj?.state === UNAVAILABLE,
                   })} d=${this.config.icon.split(":")[2] ? this.config.icon.split(":")[2] : ""}/>
                   <path class=${classMap({
                     "state-on-sidegate-icon":
-                      ifDefined(stateObj? this.computeActiveState(stateObj) : undefined) === "off" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
+                    ifDefined(stateObj ? this.computeActiveState(stateObj) : "on") === "on" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
                     "state-off-sidegate-icon":
-                      ifDefined(stateObj ? this.computeActiveState(stateObj) : "on") === "on" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
-                    "state-unavailable": stateObj2?.state === UNAVAILABLE,
+                    ifDefined(stateObj? this.computeActiveState(stateObj) : "off") === "off" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
+                    "state-unavailable": stateObj2?.state === UNAVAILABLE || stateObj?.state === UNAVAILABLE,
                   })}
                   d=${this.config.icon.split(":")[1]} />
               </svg>
@@ -308,7 +239,7 @@ export class BoilerplateCard extends LitElement {
         `
       : ""}
      ${this._shouldRenderRipple ? html`<mwc-ripple></mwc-ripple>` : ""}
-     ${UNAVAILABLE_STATES.includes(stateObj2!.state)
+     ${UNAVAILABLE_STATES.includes(stateObj2?.state) || UNAVAILABLE_STATES.includes(stateObj?.state)
               ? html`
                   <unavailable-icon></unavailable-icon>` : html ``}
       </ha-card>

@@ -92,26 +92,49 @@ export class BoilerplateCardEditor extends LitElement implements LovelaceCardEdi
       ></ha-form>
       <div id="picker"> ${localize('editor.config.picker')} </div>
         <div id="icons">
-          ${iconListMap.map((icon) =>
-              html `
-              <ha-card class="icon-card ${classMap({
-                  "on": this.icon === icon,
-                  "off": this.icon !== icon})}"
-                  @click=${this._changed_icon.bind(this, icon)}>
-              <div id="container">
-                <svg viewBox="0 0 50 50" height="100%" width="100%">
-                  <path class="svg-icon ${classMap({
-                  "on": this.icon === icon,
-                  "off": this.icon !== icon})}" d=${icon.split(":")[0]}/>
-                  <path class="svg-icon ${classMap({
-                  "on": this.icon === icon,
-                  "off": this.icon !== icon})}" d=${icon.split(":")[1]}/>
-                  <path class="svg-icon ${classMap({
-                  "on": this.icon === icon,
-                  "off": this.icon !== icon})}" d=${icon.split(":")[2]}/>
-                </svg>
-              </div>
-              </ha-card>`
+          ${iconListMap.map((icon, index) => {
+            if (index) {
+            return  html `
+            <ha-card class="icon-card ${classMap({
+                "on": this.icon === icon,
+                "off": this.icon !== icon})}"
+                @click=${this._changed_icon.bind(this, icon)}>
+            <div id="container">
+              <svg viewBox="0 0 50 50" height="100%" width="100%">
+                <path class="svg-icon ${classMap({
+                "on": this.icon === icon,
+                "off": this.icon !== icon})}" d=${icon.split(":")[0]}/>
+                <path class="svg-icon ${classMap({
+                "on": this.icon === icon,
+                "off": this.icon !== icon})}" d=${icon.split(":")[1]}/>
+                <path class="svg-icon ${classMap({
+                "on": this.icon === icon,
+                "off": this.icon !== icon})}" d=${icon.split(":")[2]}/>
+              </svg>
+            </div>
+            </ha-card>`
+            }
+            return html `
+            <ha-card class="icon-card ${classMap({
+                "on": this.icon === icon,
+                "off": this.icon !== icon})}"
+                @click=${this._changed_icon.bind(this, icon)}>
+            <div id="containerMin">
+              <svg viewBox="0 0 50 50" height="100%" width="100%">
+                <path class="svg-icon ${classMap({
+                "on": this.icon === icon,
+                "off": this.icon !== icon})}" d=${icon.split(":")[0]}/>
+                <path class="svg-icon ${classMap({
+                "on": this.icon === icon,
+                "off": this.icon !== icon})}" d=${icon.split(":")[1]}/>
+                <path class="svg-icon ${classMap({
+                "on": this.icon === icon,
+                "off": this.icon !== icon})}" d=${icon.split(":")[2]}/>
+              </svg>
+            </div>
+            </ha-card>`
+          }
+
             )
           }
         </div>
@@ -149,7 +172,6 @@ export class BoilerplateCardEditor extends LitElement implements LovelaceCardEdi
     if (!this._config || !this.hass) {
       return;
     }
-    console.log("value", ev)
     const config = ev.detail.value;
     fireEvent(this, "config-changed", { config });
   }
@@ -167,6 +189,14 @@ export class BoilerplateCardEditor extends LitElement implements LovelaceCardEdi
         margin: 10px;
       }
 
+      #container {
+        height: 100%;
+        width: 75%;
+      }
+      #containerMin {
+        width: 30%;
+        height: 100%;
+      }
       @media only screen and (max-width: 600px) {
         ha-card{
           width: 30%;
@@ -176,6 +206,10 @@ export class BoilerplateCardEditor extends LitElement implements LovelaceCardEdi
           cursor: pointer;
           display: flex;
           justify-content: center;
+        }
+        #containerMin {
+          width: 50%;
+          height: 100%;
         }
       }
       ha-card.icon-card.on{
@@ -187,10 +221,6 @@ export class BoilerplateCardEditor extends LitElement implements LovelaceCardEdi
       }
       .svg-icon.on {
         fill: var(--accent-color);
-      }
-      #container {
-        height: 100%;
-        width: 75%;
       }
       #picker {
         margin-top: 50px;
