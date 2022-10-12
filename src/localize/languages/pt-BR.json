@@ -4,7 +4,8 @@
     "version": "Versão",
     "invalid_configuration": "Configuração Inválida",
     "show_warning": "Mostrar Aviso",
-    "show_error": "Mostrar Erro"
+    "show_error": "Mostrar Erro",
+    "tap": "Clique para abrir/fechar"
   },
   "states":{
       "on": "Ligado",

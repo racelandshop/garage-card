@@ -4,7 +4,8 @@
       "version": "Versione",
       "invalid_configuration": "Configurazione non valida",
       "show_warning": "Mostra avviso",
-      "show_error": "Mostra errore"
+      "show_error": "Mostra errore",
+      "tap": "Tocca per aprire/chiudere"
     },
     "states":{
         "on": "Acceso",

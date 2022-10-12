@@ -6,6 +6,14 @@ declare global {
   }
 }
 
+declare global {
+  let __DEV__: boolean;
+  interface HTMLElementTagNameMap {
+    'remote-card-editor': LovelaceCardEditor;
+    'hui-error-card': LovelaceCard;
+  }
+}
+
 // TODO Add your configuration elements here for type-checking
 export interface BoilerplateCardConfig extends LovelaceCardConfig {
   type: string;

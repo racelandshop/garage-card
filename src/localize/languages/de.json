@@ -4,7 +4,8 @@
       "version": "Ausführung",
       "invalid_configuration": "Ungültige Konfiguration",
       "show_warning": "Warnung anzeigen",
-      "show_error": "Fehler anzeigen"
+      "show_error": "Fehler anzeigen",
+      "tap": "Zum Öffnen/Schließen antippen"
     },
     "states":{
         "on": "Eingeschaltet",

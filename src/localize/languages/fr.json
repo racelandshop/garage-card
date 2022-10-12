@@ -4,7 +4,8 @@
       "version": "Version",
       "invalid_configuration": "Configuration invalide",
       "show_warning": "Afficher l'avertissement",
-      "show_error": "Afficher l'erreur"
+      "show_error": "Afficher l'erreur",
+      "tap": "Appuyez pour ouvrir/fermer"
     },
     "states":{
         "on": "Allumé",

@@ -16,6 +16,7 @@ import { CARD_VERSION, garageOpen, garageClosed, UNAVAILABLE_STATES, UNAVAILABLE
 import { localize } from './localize/localize';
 // import { debounce } from "./common/debounce";
 import { hasConfigOrSensorChanged } from "./utils/hasSensorChanged";
+import { showConfirmDialog } from "./show-confirm-dialog";
 
 
 console.info(
@@ -89,20 +90,26 @@ export class BoilerplateCard extends LitElement {
     };
   }
 
-  public translate_state(stateObj): string{
-    if(ifDefined(stateObj ? this.computeActiveState(stateObj) : undefined) === "on") {
+  protected async firstUpdated(): Promise<void> {
+    window.addEventListener("confirm-action", () => {
+      this._handleAction('tap')
+    });
+  }
+
+  public translate_state(stateSensor): string{
+    if(ifDefined(stateSensor ? this.computeActiveState(stateSensor) : undefined) === "on") {
       return localize("states.on");
     }
-    else if(ifDefined(stateObj ? this.computeActiveState(stateObj) : undefined) === "off") {
+    else if(ifDefined(stateSensor ? this.computeActiveState(stateSensor) : undefined) === "off") {
       return localize("states.off");
     }
-    else if(ifDefined(stateObj ? this.computeActiveState(stateObj) : undefined) === "unavailable") {
+    else if(ifDefined(stateSensor ? this.computeActiveState(stateSensor) : undefined) === "unavailable") {
       return localize("states.unavailable");
     }
     else {
       return ""
     }
-}
+  }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (!this.config) {
@@ -118,17 +125,17 @@ export class BoilerplateCard extends LitElement {
     if (this.config.show_error) {
       return this._showError(localize('common.show_error'));
     }
-    const stateObj2: any = this.config.entity
+    const stateEntity: any = this.config.entity
       ? this.hass.states[this.config.entity]
       : undefined;
-    const stateObj = this.hass.states[this.config.sensor];
+    const stateSensor = this.hass.states[this.config.sensor];
 
-    this._stateSensor = stateObj;
+    this._stateSensor = stateSensor;
 
     const name = this.config.show_name
 
 
-    ? this.config.name || (stateObj2 ? this.computeStateName(stateObj2) : "")
+    ? this.config.name || (stateEntity ? this.computeStateName(stateEntity) : "")
       : "";
 
   return html`
@@ -137,9 +144,9 @@ export class BoilerplateCard extends LitElement {
         "big-card": this.layout === "big",
         "medium-card": this.layout === "medium",
         "small-card": this.layout === "small",
-        "unavailable": UNAVAILABLE_STATES.includes(stateObj2?.state) || UNAVAILABLE_STATES.includes(stateObj?.state)
+        "unavailable": UNAVAILABLE_STATES.includes(stateEntity?.state) || UNAVAILABLE_STATES.includes(stateSensor?.state)
               })}
-      @action=${this._handleAction}
+      @action=${this._showConfirmDialog}
       @focus=${this.handleRippleFocus}
       @blur=${this.handleRippleBlur}
       @mousedown=${this.handleRippleActivate}
@@ -148,7 +155,7 @@ export class BoilerplateCard extends LitElement {
       @touchend=${this.handleRippleDeactivate}
       @touchcancel=${this.handleRippleDeactivate}
       @keydown=${this._handleKeyDown}
-      .disabled=${UNAVAILABLE_STATES.includes(stateObj2?.state) || UNAVAILABLE_STATES.includes(stateObj?.state)}
+      .disabled=${UNAVAILABLE_STATES.includes(stateEntity?.state) || UNAVAILABLE_STATES.includes(stateSensor?.state)}
       .actionHandler=${actionHandler({
       hasHold: hasAction(this.config.hold_action),
       hasDoubleClick: hasAction(this.config.double_tap_action),
@@ -156,7 +163,7 @@ export class BoilerplateCard extends LitElement {
       tabindex="0"
       role="button"
       aria-label=${this.config.name ||
-        (stateObj ? this.computeStateName(stateObj) : "")}
+        (stateSensor ? this.computeStateName(stateSensor) : "")}
         tabindex=${ifDefined(
           hasAction(this.config.tap_action) ? "0" : undefined
         )}
@@ -175,17 +182,17 @@ export class BoilerplateCard extends LitElement {
 
                   <path class=${classMap({
                     "state-on-garage":
-                    ifDefined(stateObj ? this.computeActiveState(stateObj) : "on") === "on" && (this.config.icon ===  garageClosed + ":" + garageOpen),
+                    ifDefined(stateSensor ? this.computeActiveState(stateSensor) : "on") === "on" && (this.config.icon ===  garageClosed + ":" + garageOpen),
                     "state-off-garage":
-                    ifDefined(stateObj ? this.computeActiveState(stateObj) : "off") === "off" && (this.config.icon === garageClosed + ":" + garageOpen),
-                    "state-unavailable": stateObj2?.state === UNAVAILABLE || stateObj?.state === UNAVAILABLE,
+                    ifDefined(stateSensor ? this.computeActiveState(stateSensor) : "off") === "off" && (this.config.icon === garageClosed + ":" + garageOpen),
+                    "state-unavailable": stateEntity?.state === UNAVAILABLE || stateSensor?.state === UNAVAILABLE,
                   })} d=${this.config.icon.split(":")[0]} />
                   <path class=${classMap({
                     "state-on-garage-icon":
-                    ifDefined(stateObj? this.computeActiveState(stateObj) : "on") === "on" && (this.config.icon ===  garageClosed + ":" + garageOpen),
+                    ifDefined(stateSensor? this.computeActiveState(stateSensor) : "on") === "on" && (this.config.icon ===  garageClosed + ":" + garageOpen),
                     "state-off-garage-icon":
-                    ifDefined(stateObj ? this.computeActiveState(stateObj) : "off") === "off" && (this.config.icon === garageClosed + ":" + garageOpen),
-                    "state-unavailable": stateObj2?.state === UNAVAILABLE || stateObj?.state === UNAVAILABLE,
+                    ifDefined(stateSensor ? this.computeActiveState(stateSensor) : "off") === "off" && (this.config.icon === garageClosed + ":" + garageOpen),
+                    "state-unavailable": stateEntity?.state === UNAVAILABLE || stateSensor?.state === UNAVAILABLE,
                   })}
                   d=${this.config.icon.split(":")[1]} />
               </svg>
@@ -203,24 +210,24 @@ export class BoilerplateCard extends LitElement {
               viewBox="0 0 50 50" height="100%" width="100%">
                   <path class=${classMap({
                     "state-on-sidegate":
-                    ifDefined(stateObj ? this.computeActiveState(stateObj) : "on") === "on" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
+                    ifDefined(stateSensor ? this.computeActiveState(stateSensor) : "on") === "on" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
                     "state-off-sidegate":
-                    ifDefined(stateObj? this.computeActiveState(stateObj) : "off") === "off" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
-                    "state-unavailable": stateObj2?.state === UNAVAILABLE || stateObj?.state === UNAVAILABLE,
+                    ifDefined(stateSensor? this.computeActiveState(stateSensor) : "off") === "off" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
+                    "state-unavailable": stateEntity?.state === UNAVAILABLE || stateSensor?.state === UNAVAILABLE,
                   })} d=${this.config.icon.split(":")[0]} />
                   <path class=${classMap({
                     "state-on-sidegate":
-                    ifDefined(stateObj ? this.computeActiveState(stateObj) : "on") === "on" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
+                    ifDefined(stateSensor ? this.computeActiveState(stateSensor) : "on") === "on" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
                     "state-off-sidegate":
-                    ifDefined(stateObj? this.computeActiveState(stateObj) : "off") === "off" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
-                    "state-unavailable": stateObj2?.state === UNAVAILABLE || stateObj?.state === UNAVAILABLE,
+                    ifDefined(stateSensor? this.computeActiveState(stateSensor) : "off") === "off" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
+                    "state-unavailable": stateEntity?.state === UNAVAILABLE || stateSensor?.state === UNAVAILABLE,
                   })} d=${this.config.icon.split(":")[2] ? this.config.icon.split(":")[2] : ""}/>
                   <path class=${classMap({
                     "state-on-sidegate-icon":
-                    ifDefined(stateObj ? this.computeActiveState(stateObj) : "on") === "on" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
+                    ifDefined(stateSensor ? this.computeActiveState(stateSensor) : "on") === "on" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
                     "state-off-sidegate-icon":
-                    ifDefined(stateObj? this.computeActiveState(stateObj) : "off") === "off" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
-                    "state-unavailable": stateObj2?.state === UNAVAILABLE || stateObj?.state === UNAVAILABLE,
+                    ifDefined(stateSensor? this.computeActiveState(stateSensor) : "off") === "off" && (this.config.icon === sidegatePost1 + ":" + sidegateGate + ":" + sidegatePost2),
+                    "state-unavailable": stateEntity?.state === UNAVAILABLE || stateSensor?.state === UNAVAILABLE,
                   })}
                   d=${this.config.icon.split(":")[1]} />
               </svg>
@@ -239,25 +246,32 @@ export class BoilerplateCard extends LitElement {
         `
       : ""}
      ${this._shouldRenderRipple ? html`<mwc-ripple></mwc-ripple>` : ""}
-     ${UNAVAILABLE_STATES.includes(stateObj2?.state) || UNAVAILABLE_STATES.includes(stateObj?.state)
+     ${UNAVAILABLE_STATES.includes(stateEntity?.state) || UNAVAILABLE_STATES.includes(stateSensor?.state)
               ? html`
                   <unavailable-icon></unavailable-icon>` : html ``}
       </ha-card>
     `;
   }
 
-  private computeActiveState = (stateObj: HassEntity): string => {
-    const domain = stateObj.entity_id.split(".")[0];
-    let state = stateObj.state;
+  private _showConfirmDialog() {
+    showConfirmDialog(
+      this,
+      { garageInfo: this.config }
+    )
+  }
+
+  private computeActiveState = (stateSensor: HassEntity): string => {
+    const domain = stateSensor.entity_id.split(".")[0];
+    let state = stateSensor.state;
     if (domain === "climate") {
-      state = stateObj.attributes.hvac_action;
+      state = stateSensor.attributes.hvac_action;
     }
     return state;
   };
 
-  private _handleAction(ev: ActionHandlerEvent): void {
-    if (this.hass && this.config && ev.detail.action) {
-      handleAction(this, this.hass, this.config, ev.detail.action);
+  private _handleAction(ev: string): void {
+    if (this.hass && this.config && ev) {
+      handleAction(this, this.hass, this.config, ev);
     }
   }
 
@@ -282,10 +296,10 @@ export class BoilerplateCard extends LitElement {
   private computeObjectId = (entityId: string): string =>
     entityId.substr(entityId.indexOf(".") + 1);
 
-  private computeStateName = (stateObj: HassEntity): string =>
-    stateObj.attributes.friendly_name === undefined
-      ? this.computeObjectId(stateObj.entity_id).replace(/_/g, " ")
-      : stateObj.attributes.friendly_name || "";
+  private computeStateName = (stateSensor: HassEntity): string =>
+    stateSensor.attributes.friendly_name === undefined
+      ? this.computeObjectId(stateSensor.entity_id).replace(/_/g, " ")
+      : stateSensor.attributes.friendly_name || "";
 
 
   private handleRippleFocus() {
@@ -487,7 +501,7 @@ export class BoilerplateCard extends LitElement {
         transition: 1s ease-out;
       }
       .state-unavailable {
-        fill: var(--state-unavailable-color) !important;
+        fill: var(--state-unavailable-color);
       }
 
     `;
