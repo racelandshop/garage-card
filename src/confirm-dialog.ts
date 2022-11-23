@@ -72,14 +72,6 @@ export class HuiConfirmGarage extends LitElement  {
 
   @property({ attribute: false }) public hass!: HomeAssistant;
 
-  @property({ attribute: false }) learningOn = false;
-
-  @property({ attribute: false }) quickLearning = false;
-
-  @property({ attribute: false }) learningLock = false;
-
-  @property({ attribute: false }) buttonBeingLearned = "none";
-
   @state() private config!: BoilerplateCardConfig;
 
   @state() private _params?: ConfirmDialogParams;

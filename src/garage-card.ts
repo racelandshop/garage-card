@@ -89,7 +89,6 @@ export class BoilerplateCard extends LitElement {
         action: "toggle",
       },
     };
-    console.log('config', this.config)
   }
 
   public translate_state(stateObj): string{

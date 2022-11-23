@@ -53,7 +53,6 @@ export class BoilerplateCardEditor extends LitElement implements LovelaceCardEdi
       this._initialize();
     }
     this.icon = this._config?.icon
-    console.log("config", this._config)
     return true;
   }
 
