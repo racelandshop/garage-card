@@ -1,25 +1,22 @@
 {
-    "common": {
-      "card": "Garage",
-      "version": "Ausführung",
-      "invalid_configuration": "Ungültige Konfiguration",
-      "show_warning": "Warnung anzeigen",
-      "show_error": "Fehler anzeigen",
-      "tap": "Zum Öffnen/Schließen antippen"
-    },
-    "states":{
-        "on": "Eingeschaltet",
-        "off": "Aus"
-    },
-    "editor": {
-      "config": {
-        "entity": "Einheit",
-        "sensor": "Sensor",
-        "name": "Name",
-        "theme": "Thema",
-        "show_name": "Name anzeigen?",
-        "show_state": "Zustand anzeigen?",
-        "picker": "Auf der Karte anzuzeigendes Symbol:"
-      }
+  "common": {
+    "card": "Garage",
+    "version": "Ausführung",
+    "invalid_configuration": "Ungültige Konfiguration",
+    "show_warning": "Warnung anzeigen",
+    "show_error": "Fehler anzeigen",
+    "tap": "Zum Öffnen/Schließen antippen"
+  },
+  "states":{
+      "on": "Eingeschaltet",
+      "off": "Aus"
+  },
+  "editor": {
+    "config": {
+      "entity": "Einheit",
+      "sensor": "Sensor",
+      "name": "Name",
+      "show_name": "Name anzeigen?"
     }
   }
+}

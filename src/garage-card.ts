@@ -8,13 +8,12 @@ import { customElement, property, state, eventOptions } from "lit/decorators";
 import { findEntities } from "./././find-entities";
 import { ifDefined } from "lit/directives/if-defined";
 import { classMap } from "lit/directives/class-map";
-import { HomeAssistant, hasConfigOrEntityChanged, hasAction, ActionHandlerEvent, handleAction, LovelaceCardEditor, getLovelace, computeDomain} from 'custom-card-helpers';
+import { HomeAssistant, hasAction, handleAction, LovelaceCardEditor, getLovelace } from 'custom-card-helpers';
 import './editor';
 import type { BoilerplateCardConfig } from './types';
 import { actionHandler } from './action-handler-directive';
 import { CARD_VERSION, garageOpen, garageClosed, UNAVAILABLE_STATES, UNAVAILABLE, sidegatePost1, sidegateGate, sidegatePost2 } from './const';
 import { localize } from './localize/localize';
-// import { debounce } from "./common/debounce";
 import { hasConfigOrSensorChanged } from "./utils/hasSensorChanged";
 import { showConfirmDialog } from "./show-confirm-dialog";
 
@@ -32,6 +31,7 @@ console.info(
   preview: true
 });
 @customElement('garage-card')
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class BoilerplateCard extends LitElement {
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
     return document.createElement('garage-card-editor');
@@ -58,6 +58,7 @@ export class BoilerplateCard extends LitElement {
     return {
       type: "custom:garage-card",
       entity: foundEntities[0] || "",
+      sensor: "",
       "show_name": true,
       "show_state": true,
       "show_preview": true,
@@ -88,28 +89,23 @@ export class BoilerplateCard extends LitElement {
         action: "toggle",
       },
     };
+    console.log('config', this.config)
   }
 
-  protected async firstUpdated(): Promise<void> {
-    window.addEventListener("confirm-action", () => {
-      this._handleAction('tap')
-    });
-  }
-
-  public translate_state(stateSensor): string{
-    if(ifDefined(stateSensor ? this.computeActiveState(stateSensor) : undefined) === "on") {
+  public translate_state(stateObj): string{
+    if(ifDefined(stateObj ? this.computeActiveState(stateObj) : undefined) === "on") {
       return localize("states.on");
     }
-    else if(ifDefined(stateSensor ? this.computeActiveState(stateSensor) : undefined) === "off") {
+    else if(ifDefined(stateObj ? this.computeActiveState(stateObj) : undefined) === "off") {
       return localize("states.off");
     }
-    else if(ifDefined(stateSensor ? this.computeActiveState(stateSensor) : undefined) === "unavailable") {
+    else if(ifDefined(stateObj ? this.computeActiveState(stateObj) : undefined) === "unavailable") {
       return localize("states.unavailable");
     }
     else {
       return ""
     }
-  }
+}
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (!this.config) {
@@ -253,13 +249,6 @@ export class BoilerplateCard extends LitElement {
     `;
   }
 
-  private _showConfirmDialog() {
-    showConfirmDialog(
-      this,
-      { garageInfo: this.config }
-    )
-  }
-
   private computeActiveState = (stateSensor: HassEntity): string => {
     const domain = stateSensor.entity_id.split(".")[0];
     let state = stateSensor.state;
@@ -269,10 +258,11 @@ export class BoilerplateCard extends LitElement {
     return state;
   };
 
-  private _handleAction(ev: string): void {
-    if (this.hass && this.config && ev) {
-      handleAction(this, this.hass, this.config, ev);
-    }
+  private _showConfirmDialog() {
+    showConfirmDialog(
+      this,
+      { garageInfo: this.config }
+    )
   }
 
   private _showWarning(warning: string): TemplateResult {
@@ -501,7 +491,7 @@ export class BoilerplateCard extends LitElement {
         transition: 1s ease-out;
       }
       .state-unavailable {
-        fill: var(--state-unavailable-color);
+        fill: var(--state-unavailable-color) !important;
       }
 
     `;

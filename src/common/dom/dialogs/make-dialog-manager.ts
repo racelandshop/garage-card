@@ -1,6 +1,5 @@
 import { HASSDomEvent, ValidHassDomEvent } from "custom-card-helpers";
 import { ProvideHassElement } from "../../../mixins/provide-hass-lit-mixin";
-import { BoilerplateCardConfig } from "../../../types";
 import { mainWindow } from "../get_main_window";
 
 
@@ -8,17 +7,13 @@ declare global {
   // for fire event
     interface HASSDomEvents {
     "show-dialog": HASSDomEvent<ShowDialogParams<unknown>>;
-    "confirm-action": any;
     "close-dialog": undefined;
     "dialog-closed": DialogClosedParams;
-    // "add-remote": BroadlinkDialogParams;
   }
   // for add event listener
   interface HTMLElementEventMap {
     "show-dialog": HASSDomEvent<ShowDialogParams<unknown>>;
-    "confirm-action": any;
     "dialog-closed": HASSDomEvent<DialogClosedParams>;
-    // "add-remote": BroadlinkDialogParams;
   }
 }
 

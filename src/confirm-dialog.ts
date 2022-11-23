@@ -1,26 +1,30 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
-    LitElement,
-    html,
-    TemplateResult,
-    css,
-    CSSResultGroup,
-  } from 'lit';
-  import { classMap } from "lit/directives/class-map";
-  import { customElement, property, state } from "lit/decorators";
-  import {
-    HomeAssistant,
+  LitElement,
+  html,
+  TemplateResult,
+  css,
+  PropertyValues,
+  CSSResultGroup,
+} from 'lit';
+import { classMap } from "lit/directives/class-map";
+import { customElement, property, state } from "lit/decorators";
+import {
+  HomeAssistant,
+  hasConfigOrEntityChanged,
+  getLovelace,
+  fireEvent,
+  handleAction,
+} from 'custom-card-helpers';
 
-    fireEvent,
-  } from 'custom-card-helpers';
+import './editor';
 
-  import { localize } from './localize/localize';
+import type { BoilerplateCardConfig } from './types';
+import { localize } from './localize/localize';
 import { ConfirmDialogParams } from './show-confirm-dialog';
-import { BoilerplateCardConfig } from './types';
-import { ifDefined } from 'lit/directives/if-defined';
 import { HassEntity } from 'home-assistant-js-websocket/dist/types';
 import { UNAVAILABLE, UNAVAILABLE_STATES } from './const';
-  // import { HassDialog } from './dialogs/make-dialog-manager';
+import { ifDefined } from 'lit/directives/if-defined';
 
   export const haStyleDialog = css`
     /* mwc-dialog (ha-dialog) styles */
@@ -32,16 +36,13 @@ import { UNAVAILABLE, UNAVAILABLE_STATES } from './const';
       --justify-action-buttons: space-between;
       --mdc-switch__pointer_events: auto;
     }
-
     ha-dialog .form {
       padding-bottom: 24px;
       color: var(--primary-text-color);
     }
-
     a {
       color: var(--accent-color) !important;
     }
-
     /* make dialog fullscreen on small screens */
     @media all and (max-width: 450px), all and (max-height: 500px) {
       ha-dialog {
@@ -65,49 +66,81 @@ import { UNAVAILABLE, UNAVAILABLE_STATES } from './const';
     }
   `;
 
-  @customElement('confirm-dialog')
-  export class HuiMoreInfoBroadlink2 extends LitElement {
+@customElement('confirm-dialog')
+export class HuiConfirmGarage extends LitElement  {
 
 
-    @property({ attribute: false }) public hass!: HomeAssistant;
+  @property({ attribute: false }) public hass!: HomeAssistant;
 
-    @state() private _params?: ConfirmDialogParams;
+  @property({ attribute: false }) learningOn = false;
 
-    @state() private garageInfo: any;
+  @property({ attribute: false }) quickLearning = false;
 
-    @state() private config!: BoilerplateCardConfig;
+  @property({ attribute: false }) learningLock = false;
 
-    @state() _stateSensor?: any;
+  @property({ attribute: false }) buttonBeingLearned = "none";
+
+  @state() private config!: BoilerplateCardConfig;
+
+  @state() private _params?: ConfirmDialogParams;
+
+  @state() private garageInfo!: BoilerplateCardConfig;
 
 
-    public async showDialog(params: ConfirmDialogParams): Promise<void> {
-        this._params = params;
-        this.garageInfo = this._params.garageInfo;
-        this.config = this.garageInfo;
-        await this.updateComplete;
+  public async showDialog(params: ConfirmDialogParams): Promise<void> {
+    this._params = params;
+    this.garageInfo = this._params.garageInfo;
+    this.config = this.garageInfo;
+  }
+
+  public closeDialog() {
+    this._params = undefined;
+    fireEvent(this, "dialog-closed", { dialog: this.localName });
+  }
+
+  protected async firstUpdated(changedProps) {
+    super.firstUpdated(changedProps);
+    fireEvent(this, 'config-changed', { config: this.config });
+  }
+
+
+  public setConfig(config: BoilerplateCardConfig): void {
+    if (!config) {
+      throw new Error(localize('common.invalid_configuration'));
     }
 
-    public closeDialog() {
-        this._params = undefined;
-        fireEvent(this, "dialog-closed", { dialog: this.localName });
+    if (config.test_gui) {
+      getLovelace().setEditMode(true);
+    }
+  }
+
+  protected shouldUpdate(changedProps: PropertyValues): boolean {
+    if (!this.config) {
+      return false;
+    }
+    return hasConfigOrEntityChanged(this, changedProps, true);
+  }
+
+  protected render(): TemplateResult | void {
+    if (this.config.show_warning) {
+      return this._showWarning(localize('common.show_warning'));
+
     }
 
-    protected render(): TemplateResult | void {
-      if (!this._params) {
-        return html``;
-      }
-    const stateObj2: any = this.config.entity
-    ? this.hass.states[this.config.entity]
-    : undefined;
-        const stateObj = this.hass.states[this.config.sensor];
-        console.log("object", stateObj)
+    if (this.config.show_error) {
+      return this._showError(localize('common.show_error'));
+    }
 
-    this._stateSensor = stateObj;
+    if (!this._params) {
+      return html``;
+    }
+    const stateEntity: any = this.config.entity ? this.hass.states[this.config.entity] : undefined;
 
-    const name = this.config.show_name ? this.config.name || (stateObj2 ? this.computeStateName(stateObj2) : "")
-        : "";
+    const stateSensor = this.hass.states[this.config.sensor];
 
-      return html`
+    const name = this.config.show_name ? this.config.name || (stateEntity ? this.computeStateName(stateEntity) : "") : "";
+
+    return html`
       <ha-dialog
           open
           scrimClickAction
@@ -136,102 +169,110 @@ import { UNAVAILABLE, UNAVAILABLE_STATES } from './const';
             </ha-header-bar>
           </div>
           <div class="contentFather">
-            <ha-card @click=${this._confirm} class=${classMap({
+            <ha-card
+            @click=${this._handleAction}
+            class=${classMap({
                 "state-on":
-                    ifDefined(stateObj ? this.computeActiveState(stateObj) : "on") === "on",
+                    ifDefined(stateSensor ? this.computeActiveState(stateSensor) : "on") === "on",
                 "state-off":
-                    ifDefined(stateObj ? this.computeActiveState(stateObj) : "off") === "off",
-                "no-sensor": stateObj === undefined,
-                "state-unavailable": stateObj2?.state === UNAVAILABLE || stateObj?.state === UNAVAILABLE,
+                    ifDefined(stateSensor ? this.computeActiveState(stateSensor) : "off") === "off",
+                "no-sensor": stateSensor === undefined,
+                "state-unavailable": stateEntity?.state === UNAVAILABLE || stateSensor?.state === UNAVAILABLE,
             })}>
                 <div class="row">
                     <svg viewBox="-10 -8 70 70" height="100%" width="100%" class="svg-icon">
                         <path id="svg" class=${classMap({
                                 "state-on":
-                                ifDefined(stateObj ? this.computeActiveState(stateObj) : "on") === "on",
+                                ifDefined(stateSensor ? this.computeActiveState(stateSensor) : "on") === "on",
                                 "state-off":
-                                ifDefined(stateObj ? this.computeActiveState(stateObj) : "off") === "off",
-                                "no-sensor-body": stateObj === undefined,
-                                "state-unavailable": stateObj2?.state === UNAVAILABLE || stateObj?.state === UNAVAILABLE,
+                                ifDefined(stateSensor ? this.computeActiveState(stateSensor) : "off") === "off",
+                                "no-sensor-body": stateSensor === undefined,
+                                "state-unavailable": stateEntity?.state === UNAVAILABLE || stateSensor?.state === UNAVAILABLE,
                             })}  d="M 25 3 C 18.3633 3 13 8.3633 13 15 L 13 20 L 37 20 L 37 15 C 37 8.3633 31.6367 3 25 3 Z M 25 5 C 30.5664 5 35 9.4336 35 15 L 35 20 L 15 20 L 15 15 C 15 9.4336 19.4336 5 25 5 Z M 25 3"/>
                         <path id="svg" class=${classMap({
                                 "state-on-body":
-                                ifDefined(stateObj ? this.computeActiveState(stateObj) : "on") === "on",
+                                ifDefined(stateSensor ? this.computeActiveState(stateSensor) : "on") === "on",
                                 "state-off-body":
-                                ifDefined(stateObj ? this.computeActiveState(stateObj) : "off") === "off",
-                                "no-sensor-body": stateObj === undefined,
-                                "state-unavailable": stateObj2?.state === UNAVAILABLE || stateObj?.state === UNAVAILABLE,
+                                ifDefined(stateSensor ? this.computeActiveState(stateSensor) : "off") === "off",
+                                "no-sensor-body": stateSensor === undefined,
+                                "state-unavailable": stateEntity?.state === UNAVAILABLE || stateSensor?.state === UNAVAILABLE,
                             })} d="M 35 20 L 37 20 L 9 20 C 7.3008 20 6 21.3008 6 23 L 6 47 C 6 48.6992 7.3008 50 9 50 L 41 50 C 42.6992 50 44 48.6992 44 47 L 44 23 C 44 21.3008 42.6992 20 41 20 L 35 20 M 35 20 V 20 H 37 M 37 20 M 35 20 L 35 15 L 37 15 L 37 20 Z Z Z Z M 25 30 C 26.6992 30 28 31.3008 28 33 C 28 33.8984 27.6016 34.6875 27 35.1875 L 27 38 C 27 39.1016 26.1016 40 25 40 C 23.8984 40 23 39.1016 23 38 L 23 35.1875 C 22.3984 34.6875 22 33.8984 22 33 C 22 31.3008 23.3008 30 25 30 Z"/>
                     </svg>
                 </div>
             </ha-card>
             <div id="name">${name}</div>
-            ${UNAVAILABLE_STATES.includes(stateObj2?.state) || UNAVAILABLE_STATES.includes(stateObj?.state)
+            ${UNAVAILABLE_STATES.includes(stateEntity?.state) && UNAVAILABLE_STATES.includes(stateSensor?.state)
               ? html`` : html `<div id="tap" >${localize("common.tap")}</div>`}
           </div>
           <div slot="secondaryAction" class="options">
             <mwc-button class="button-cancel" @click=${this._cancel}>
-            cancelar</mwc-button
-            >
-            <!-- <mwc-button class="button-cancel" @click=${this._confirm}>
-              confirmar</mwc-button
-            > -->
+            cancelar</mwc-button>
           </div>
-          ${UNAVAILABLE_STATES.includes(stateObj2?.state) || UNAVAILABLE_STATES.includes(stateObj?.state)
+          ${UNAVAILABLE_STATES.includes(stateEntity?.state) || UNAVAILABLE_STATES.includes(stateSensor?.state)
               ? html`
                   <unavailable-icon></unavailable-icon>` : html ``}
         </ha-dialog>
-      `;
-    }
+    `;
+  }
 
-    private computeActiveState = (stateObj: HassEntity): string => {
-        const domain = stateObj.entity_id.split(".")[0];
-        let state = stateObj.state;
-        if (domain === "climate") {
-          state = stateObj.attributes.hvac_action;
-        }
-        console.log("state", state)
-        return state;
-    };
-
-    private computeObjectId = (entityId: string): string =>
-        entityId.substr(entityId.indexOf(".") + 1);
-
-    private computeStateName = (stateObj: HassEntity): string =>
-    stateObj.attributes.friendly_name === undefined
-      ? this.computeObjectId(stateObj.entity_id).replace(/_/g, " ")
-      : stateObj.attributes.friendly_name || "";
-
-    private _cancel(ev?: Event) {
-      if (ev) {
-        ev.stopPropagation();
+  private computeActiveState = (stateSensor: HassEntity): string => {
+      const domain = stateSensor.entity_id.split(".")[0];
+      let state = stateSensor.state;
+      if (domain === "climate") {
+        state = stateSensor.attributes.hvac_action;
       }
-      this.closeDialog();
+      return state;
+  };
+
+  private computeObjectId = (entityId: string): string =>
+      entityId.substr(entityId.indexOf(".") + 1);
+
+  private computeStateName = (stateSensor: HassEntity): string =>
+  stateSensor.attributes.friendly_name === undefined
+    ? this.computeObjectId(stateSensor.entity_id).replace(/_/g, " ")
+    : stateSensor.attributes.friendly_name || "";
+
+  private _cancel(ev?: Event) {
+    if (ev) {
+      ev.stopPropagation();
     }
+    this.closeDialog();
+  }
 
-    private _confirm(ev?: Event) {
-        if (ev) {
-            fireEvent(this, "confirm-action", {garageInfo: this.config})
-        }
-      }
+  private _handleAction(ev: PointerEvent): void {
+    if (this.hass && this.config && ev.type) {
+      handleAction(this, this.hass, this.config, "tap");
+    }
+  }
 
+  private _showWarning(error_message: string): TemplateResult {
+    return html`
+      <hui-warning>${error_message}</hui-warning>
+    `;
+  }
 
-    static get styles(): CSSResultGroup {
-      return [
-        haStyleDialog,
-        css`
-        ha-header-bar {
+  private _showError(error: string): TemplateResult {
+    const errorCard = document.createElement('hui-error-card');
+    errorCard.setConfig({
+      type: 'error',
+      error,
+      origConfig: this.config,
+    });
+
+    return html`
+      ${errorCard}
+    `;
+  }
+
+  static get styles(): CSSResultGroup {
+    return [
+      haStyleDialog,
+      css`
+      ha-header-bar {
         --mdc-theme-on-primary: var(--primary-text-color);
         --mdc-theme-primary: var(--mdc-theme-surface);
         flex-shrink: 0;
         }
-        /* overrule the ha-style-dialog max-height on small screens */
-        /* @media all and (max-width: 450px), all and (max-height: 500px) {
-            ha-header-bar {
-                --mdc-theme-primary: var(--app-header-background-color);
-                --mdc-theme-on-primary: var(--app-header-text-color, white);
-            }
-        } */
         .contentFather {
             display: flex;
             justify-content: center;
@@ -240,16 +281,14 @@ import { UNAVAILABLE, UNAVAILABLE_STATES } from './const';
             width: 100%;
             height: 100%;
             padding: 30px 0px;
-
         }
         ha-card {
-            border-radius: 50%;
+            border-radius: 2.8rem;
             width: 60%;
             height: 60%;
             cursor: pointer;
             display: flex;
             justify-content: center;
-            /* margin-bottom: 120px; */
         }
         #name {
             text-align: center;
@@ -268,10 +307,9 @@ import { UNAVAILABLE, UNAVAILABLE_STATES } from './const';
                 display: flex;
                 justify-content: center;
             }
-
             unavailable-icon {
                 position: absolute;
-                top: 46%;
+                top: 35%;
             }
         }
         .main-title {
@@ -317,13 +355,13 @@ import { UNAVAILABLE, UNAVAILABLE_STATES } from './const';
         .state-unavailable {
             fill: var(--state-unavailable-color);
         }
-        `,
-      ];
-    }
+    `,
+    ];
   }
+}
 
-  declare global {
-    interface HTMLElementTagNameMap {
-      "confirm-dialog": HuiMoreInfoBroadlink2;
-    }
+declare global {
+  interface HTMLElementTagNameMap {
+    "confirm-dialog": HuiConfirmGarage;
   }
+}

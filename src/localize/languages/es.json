@@ -1,25 +1,22 @@
 {
-    "common": {
-      "card": "Garaje",
-      "version": "Versión",
-      "invalid_configuration": "Configuración no válida",
-      "show_warning": "Mostrar advertencia",
-      "show_error": "Mostrar error",
-      "tap": "Toque para abrir/cerrar"
-    },
-    "states":{
-        "on": "Encendido",
-        "off": "Apagado"
-    },
-    "editor": {
-      "config": {
-        "entity": "Entidad",
-        "sensor": "Sensor",
-        "name": "Nombre",
-        "theme": "Tema",
-        "show_name": "Mostrar nombre?",
-        "show_state": "Mostrar estado?",
-        "picker": "Icono para mostrar en la tarjeta:"
-      }
+  "common": {
+    "card": "Garaje",
+    "version": "Versión",
+    "invalid_configuration": "Configuración no válida",
+    "show_warning": "Mostrar advertencia",
+    "show_error": "Mostrar error",
+    "tap": "Toque para abrir/cerrar"
+  },
+  "states":{
+      "on": "Encendido",
+      "off": "Apagado"
+  },
+  "editor": {
+    "config": {
+      "entity": "Entidad",
+      "sensor": "Sensor",
+      "name": "Nombre",
+      "show_name": "Mostrar nombre?"
     }
   }
+}

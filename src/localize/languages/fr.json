@@ -1,25 +1,22 @@
 {
-    "common": {
-      "card": "Garage",
-      "version": "Version",
-      "invalid_configuration": "Configuration invalide",
-      "show_warning": "Afficher l'avertissement",
-      "show_error": "Afficher l'erreur",
-      "tap": "Appuyez pour ouvrir/fermer"
-    },
-    "states":{
-        "on": "Allumé",
-        "off": "À l'arrêt"
-    },
-    "editor": {
-      "config": {
-        "entity": "Entité",
-        "sensor": "Capteur",
-        "name": "Nom",
-        "theme": "Thème",
-        "show_name": "Afficher le nom?",
-        "show_state": "Afficher l'état?",
-        "picker": "Icône à afficher sur la carte:"
-      }
+  "common": {
+    "card": "Garage",
+    "version": "Version",
+    "invalid_configuration": "Configuration invalide",
+    "show_warning": "Afficher l'avertissement",
+    "show_error": "Afficher l'erreur",
+    "tap": "Appuyez pour ouvrir/fermer"
+  },
+  "states":{
+      "on": "Allumé",
+      "off": "À l'arrêt"
+  },
+  "editor": {
+    "config": {
+      "entity": "Entité",
+      "sensor": "Capteur",
+      "name": "Nom",
+      "show_name": "Afficher le nom?"
     }
   }
+}
